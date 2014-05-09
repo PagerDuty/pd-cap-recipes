@@ -3,34 +3,34 @@ COMMENT_FILE = "/var/tmp/cap_message.txt"
 Capistrano::Configuration.instance(:must_exist).load do |config|
   # Make sure that there's a comment for this deploy
   set :comment do
-    return config[:comment_value] if config[:comment_value]
-
-    file = COMMENT_FILE 
-    FileUtils.rm(file) if File.exists?(file)
-    if no_comment?
-      prev = safe_current_revision
-      cur = fetch(:branch)
-      content = 
+    unless config[:comment_value]
+      file = COMMENT_FILE
+      FileUtils.rm(file) if File.exists?(file)
+      if no_comment?
+        prev = safe_current_revision
+        cur = fetch(:branch)
+        content =
 """
 
 # Please provide a meaningful comment describing what you are deploying.
 """
-      File.open(file, 'w') do |f|
-        f.write(content)
+        File.open(file, 'w') do |f|
+          f.write(content)
+        end
+
+        if prev && cur
+          `git log #{prev}..#{cur} --pretty="# %h: %s" >> #{file}`
+        end
+
+        system("#{ENV['EDITOR'] || 'vim'} #{file}")
+        comment = File.exist?(file) ? File.open(file).read : nil
+
+        config[:comment_value] = clean_comment(comment)
       end
 
-      if prev && cur
-        `git log #{prev}..#{cur} --pretty="# %h: %s" >> #{file}`
+      if no_comment?
+        raise "You must specify a comment"
       end
-
-      system("#{ENV['EDITOR'] || 'vim'} #{file}")
-      comment = File.exist?(file) ? File.open(file).read : nil
-
-      config[:comment_value] = clean_comment(comment)
-    end
-
-    if no_comment?
-      raise "You must specify a comment"
     end
     config[:comment_value]
   end
