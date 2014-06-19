@@ -24,8 +24,10 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     out.split("\n").map(&:strip)
   end
 
+  set :local_migration_files, Dir['db/migrate/*.rb']
+
   def local_migrations
-    Dir['db/migrate/*.rb'].map do |f|
+    local_migration_files.map do |f|
       f.match(/migrate\/(\d+)_/).to_a[1]
     end 
   end
