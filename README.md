@@ -56,21 +56,6 @@ When you deploy, you will prompted for a comment. This will be used to notify yo
 
 The entire output produced by capistrano is logged to log/capistrano.log.
 
-### Assets
-
-When using the Rails 3.1 assets pipeline, we enhance the default capistrano task with two features. 
-
-First, we only trigger an asset compillation when assets have changes. This is a huge time saver if you have a lot of assets. If you want to force the compilation of your assets, you can force it by setting the COMPILE_ASSETS environment variable to 'true'. You can also set the following capistrano variable:
-
-    set :always_compile_assets, true
-
-The other feature is pushing your assets to a CDN using rsync. You can enable this functionality by adding this line to your capistrano config:
-
-    set :asset_cdn_host, "<you_cdn_user>@<your_cdn_url>"
-
-You'll have to make sure that rsync can access your CDN without being prompter for a password.
-
-
 ### Benchmarking your deploys
 
 There's also a performance report printed at the end of every deploy to help you find slow tasks in your deployments and keep things snappy.
