@@ -2,11 +2,15 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
   namespace :db do 
     desc "Prompts you to continue if you have pending migrations and did not deploy with deploy:migrations"
     task 'check_for_pending_migrations', :on_error => :continue do
-      mig = pending_migrations
-      unless mig.empty? 
-        unless confirm("Pending Migrations: #{mig.join("\n")}\n\nYou currently have pending migrations but are deploying without deploy:migrations. Are you sure this is what you want to do? #{green "[yes, no]"}")
-          raise Capistrano::Error.new("Aborting due to pending migrations")
+      if ENV['PENDING_MIGRATIONS_OK'].nil?
+        mig = pending_migrations
+        unless mig.empty? 
+          unless confirm("Pending Migrations: #{mig.join("\n")}\n\nYou currently have pending migrations but are deploying without deploy:migrations. Are you sure this is what you want to do? #{green "[yes, no]"}")
+            raise Capistrano::Error.new("Aborting due to pending migrations")
+          end
         end
+      else
+        logger.info 'WARNING: Skipping pending migration check because PENDING_MIGRATIONS_OK is set.'
       end
     end
   end

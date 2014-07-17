@@ -117,6 +117,8 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
             " Set REVERSE_DEPLOY_OK to override."
         end
       end
+    else
+      logger.info 'WARNING: Skipping reverse deploy check because REVERSE_DEPLOY_OK is set.'
     end
   end
 
