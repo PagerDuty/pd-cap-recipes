@@ -9,6 +9,8 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
             raise Capistrano::Error.new("Aborting due to pending migrations")
           end
         end
+      else
+        logger.info 'WARNING: Skipping pending migration check because PENDING_MIGRATIONS_OK is set.'
       end
     end
   end
