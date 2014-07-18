@@ -39,7 +39,7 @@ end
 
 Capistrano::Configuration.instance(:must_exist).load do |config|
   config.on :load do
-    file = File.open('log/capistrano.log', 'a')
+    file = File.open('log/capistrano.log', 'a') rescue nil
 
     config.logger = Capistrano::DualLogger.new(:output => file)
     config.logger.level = 3
