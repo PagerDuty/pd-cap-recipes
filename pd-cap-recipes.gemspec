@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "grit", ">= 2.5.0"
   s.add_dependency "git", ">= 1.2.5"
+  s.add_dependency "capistrano", "~> 2.15"
 
   # Also add these to your gem file
   # gem 'cap_gun', :git => "git://github.com/ffmike/cap_gun.git"

@@ -48,7 +48,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     config[:tag] = tag_to_rollback_to
   end
 
-  after "deploy:symlink", "git:update_tag_for_stage"
+  after "deploy:create_symlink", "git:update_tag_for_stage"
   before "deploy", "git:validate_branch_is_tag"
   before "deploy:migrations", "git:validate_branch_is_tag"
 
