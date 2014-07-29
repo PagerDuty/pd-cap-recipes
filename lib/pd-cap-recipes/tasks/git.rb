@@ -67,6 +67,11 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
 
       Capistrano::CLI.ui.say "Your new tag is #{green new_tag}" 
       Capistrano::CLI.ui.say "You can deploy the tag by running:\n  bundle exec cap #{stage} deploy -s tag=#{new_tag}" 
+
+      if config[:bot_deployer_command_formatter]
+        command = config[:bot_deployer_command_formatter] % [new_tag, stage]
+        Capistrano::CLI.ui.say "You can also deploy by sending this to your deployment bot:\n  #{purple command}"
+      end
     end
 
     set :branch do
@@ -135,6 +140,10 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
 
   def green(s)
     "\e[1m\e[32m#{s}\e[0m" 
+  end
+
+  def purple(s)
+    "\e[1m\e[35m#{s}\e[0m"
   end
 
   # current_revision will throw an exception if this is the first deploy...
