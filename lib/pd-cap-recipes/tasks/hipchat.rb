@@ -44,7 +44,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       fetch(:hipchat_human,
             if (u = %x{git config user.name}.strip) != ""
               u
-            elsif (u = ENV['USER']) != ""
+            elsif (u = ENV['USER']).to_s != ""
               u
             else
               "Someone"
