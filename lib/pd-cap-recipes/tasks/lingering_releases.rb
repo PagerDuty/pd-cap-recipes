@@ -29,7 +29,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       if lingering_releases.size > 0
         logger.info "Lingering releases exist on #{lingering_releases.keys}. Details are " +
           "#{lingering_releases}"
-        if ENV['PRESERVE_LINGERING_RELEASES'] != "true"
+        if ENV['PRESERVE_LINGERING_RELEASES'] != 'true'
           logger.info "Deleting lingering releases found on #{lingering_releases.keys}"
           dynamic_latest_release = "\"#{releases_path}/`ls -1 #{releases_path} | tail -n 1`\""
 
@@ -41,10 +41,10 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
             "then rm -rf #{dynamic_latest_release}; fi", options: {hosts: lingering_releases.keys}
         else
           logger.info
-            "Skipping deletion of lingering releases as PRESERVE_LINGERING_RELEASES == true"
+            'Skipping deletion of lingering releases as PRESERVE_LINGERING_RELEASES == true'
         end
       else
-        logger.info "No lingering releases to clean up."
+        logger.info 'No lingering releases to clean up.'
       end
 
     end
