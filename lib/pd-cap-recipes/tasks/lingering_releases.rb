@@ -65,7 +65,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
 
     if releases_by_host.present? && current_release_by_host.present?
       hosts_with_lingering_releases = releases_by_host.select { |host, releases|
-        releases.size > 0 && releases.last != current_release_by_host[host]
+        !releases.empty? && releases.last != current_release_by_host[host]
       }
 
       # We could lose this if, but I prefer to always return a hash ({}.reduce(&:merge) == nil)
