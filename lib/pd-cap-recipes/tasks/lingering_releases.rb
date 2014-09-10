@@ -1,27 +1,32 @@
 Capistrano::Configuration.instance(:must_exist).load do |config|
   namespace :deploy do
 
-    # This deletes any releases that are newer than that pointed to be the current symlink.
+    # Checks if there are any releases that are more recent than the "current" symlink on each host.
+    # If there are it deletes the most recent one.
     #
-    # It can be useful to hook this in to run before update_code. Otherwise, running update_code
-    # followed by a deploy can leave users in an unexpected state that can cause problems with
-    # rollbacks.
+    # Below are listed some use cases which will be "fixed" by hooking in this task to run before
+    # update_code. Otherwise, these use cases can cause problems with rollbacks.
     #
-    # Case 1) If update_code was used previously across all boxes, followed by a full deploy,
-    # then the penultimate release on each server will not be from the previous full deploy. This
-    # means that a deploy:rollback will rollback onto code the user may not be expecting it to.
+    # Case 1) If update_code is performed, followed by a full deploy, then the penultimate release
+    # on each server will not be from the previous full deploy. This means that a deploy:rollback
+    # will rollback onto code the user may not be expecting it to.
     #
-    # Case 2) Another issue occurs when update_code is used on only a selection of servers followed
-    # by a full deploy. In this case, cap will deduce the release to rollback to based on whatever
-    # is the previous release on the first server it encounters. This won't match what the previous
-    # release is on all servers, and so some will be incorrectly symlinked against non existent
-    # releases.
+    # Case 2) If update_code is performed with a host filter on some set of hosts H, followed
+    # by a full deploy, then the penultimate deploy will differ on H and ~H. Cap will deduce the
+    # release to rollback to based on whatever is the penultimate release on the first server it
+    # encounters. This won't match what the penultimate release is on all servers, and so some will
+    # be incorrectly symlinked against non existent releases.
+    #
+    # TODO Case 3) If a deploy is performed with host filter on some set of hosts H, followed by a
+    # full deploy, then the penultimate release on H will differ from those on ~H.
+    # This case will not be correctly cleaned up by this task, and will result in a bad rollback as
+    # in Case 2.
     #
     # To hook this in to run before update_code:
     #   before 'deploy:update_code', 'deploy:cleanup_lingering_releases'
     desc <<-DESC
-    Deletes any releases that are more recent than what is pointed to by the "current" symlink, \
-    unless the environment variable PRESERVE_LINGERING_RELEASES is set to "true".
+    Checks if there are any releases that are more recent than the "current" symlink on each host. \
+    If there are it deletes the most recent one.
     DESC
     task :cleanup_lingering_releases do
       lingering_releases = servers_with_lingering_releases
