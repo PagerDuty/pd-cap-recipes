@@ -43,7 +43,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
           # is not being used despite not being pointed to be the current symlink.
           run "if [[ -e #{dynamic_latest_release} ]] " +
             "&& [[ `readlink  #{current_path}` != #{dynamic_latest_release} ]]; " +
-            "then rm -rf #{dynamic_latest_release}; fi", options: {hosts: lingering_releases.keys}
+            "then rm -rf #{dynamic_latest_release}; fi", :hosts => lingering_releases.keys
         else
           logger.info
             'Skipping deletion of lingering releases as PRESERVE_LINGERING_RELEASES == true'
