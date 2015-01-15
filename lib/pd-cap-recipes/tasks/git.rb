@@ -22,7 +22,6 @@ class GitRepo
     @git.tag({}, tag)
     @git.push({}, 'origin', "refs/tags/#{tag}")
   end
-
 end
 
 Capistrano::Configuration.instance(:must_exist).load do |config|
@@ -32,7 +31,6 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       git.cut_tag
     end
   end
-
 
   after "rollback", "deploy"
   desc "Rolls back to not but last deploy"
@@ -52,7 +50,6 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
   before "deploy:migrations", "git:validate_branch_is_tag"
 
   namespace :git do
-
     task :cut_tag do
       repo = Grit::Repo.new('.')
 
@@ -64,8 +61,8 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       new_tag = "#{repo.head.name}-#{Time.now.utc.to_i}"
       git.remote_tag new_tag
 
-      Capistrano::CLI.ui.say "Your new tag is #{green new_tag}" 
-      Capistrano::CLI.ui.say "You can deploy the tag by running:\n  bundle exec cap #{stage} deploy -s tag=#{new_tag}" 
+      Capistrano::CLI.ui.say "Your new tag is #{green new_tag}"
+      Capistrano::CLI.ui.say "You can deploy the tag by running:\n  bundle exec cap #{stage} deploy -s tag=#{new_tag}"
 
       if config[:bot_deployer_command_formatter]
         command = config[:bot_deployer_command_formatter] % [new_tag, stage]
@@ -138,7 +135,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
   end
 
   def green(s)
-    "\e[1m\e[32m#{s}\e[0m" 
+    "\e[1m\e[32m#{s}\e[0m"
   end
 
   def purple(s)
@@ -158,4 +155,3 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     end
   end
 end
-
