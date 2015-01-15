@@ -24,7 +24,6 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency 'capistrano', '~> 2.15'
   s.add_runtime_dependency 'grit', '~> 2.5.0'
-  s.add_runtime_dependency 'hipchat', '~> 0.4.1'
   s.add_runtime_dependency 'cap_gun', '~> 0.2.4'
   s.add_runtime_dependency 'json'
   s.add_runtime_dependency 'mysql2'

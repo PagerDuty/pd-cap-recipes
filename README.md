@@ -43,10 +43,6 @@ Another nice thing this recipe does is keep an up to date tag for each environme
 
     git diff production
 
-### Deploy Comments
-
-When you deploy, you will prompted for a comment. This will be used to notify your coworkers via email and HipChat.
-
 ### Improved Logging
 
 The entire output produced by capistrano is logged to log/capistrano.log.
