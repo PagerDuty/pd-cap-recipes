@@ -26,7 +26,7 @@ end
 
 Capistrano::Configuration.instance(:must_exist).load do |config|
   namespace :deploy do
-    desc 'Cut a tag for deployment'
+    desc 'Cuts a tag for deployment and prints out further instructions to finalize deployment'
     task :prepare do
       new_tag = git_cut_tag
       Capistrano::CLI.ui.say "Your new tag is #{green new_tag}"
