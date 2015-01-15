@@ -1,4 +1,3 @@
-require 'git'
 require 'grit'
 
 # Bump up grit limits since git.fetch can take a lot
