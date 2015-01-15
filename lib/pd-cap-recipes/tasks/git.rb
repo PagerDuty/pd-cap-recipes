@@ -15,7 +15,7 @@ class GitRepo
 
   def delete_remote_tag(tag)
     @git.tag d: tag
-    @git.push({}, 'origin', ":refs/tags/#{tag}")
+    @git.push({}, 'origin', "refs/tags/#{tag}")
   end
 
   def remote_tag(tag)
