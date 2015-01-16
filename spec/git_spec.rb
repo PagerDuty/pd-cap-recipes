@@ -15,16 +15,16 @@ describe "Git sanity check", :recipe => true do
 
       it "should complain is the branch variable get overridden" do
         config.set :branch, 'release'
-        task_lambda.should raise_error(Capistrano::Error)
+        expect(task_lambda).to raise_error(Capistrano::Error)
       end
 
       it "should not complain is the branch variable get overridden" do
-        task_lambda.should_not raise_error
+        expect(task_lambda).to_not raise_error
       end
 
       ["deploy", "deploy:migrations"].each do |task|
         it "should run before #{task}" do
-          before_callbacks_for_task(task).should include('git:validate_branch_is_tag')
+          expect(before_callbacks_for_task(task)).to include('git:validate_branch_is_tag')
         end
       end
     end

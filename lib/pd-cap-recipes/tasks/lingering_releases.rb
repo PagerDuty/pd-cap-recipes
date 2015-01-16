@@ -1,3 +1,5 @@
+require 'active_support/core_ext'
+
 Capistrano::Configuration.instance(:must_exist).load do |config|
   namespace :deploy do
 
