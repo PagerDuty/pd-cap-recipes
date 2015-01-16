@@ -60,12 +60,8 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     set :branch do
       return config[:_git_branch] if config[:_git_branch]
 
-      tag = config[:tag]
-      if !config[:tag]
-        tag = Capistrano::CLI.ui.ask green("Tag to deploy: ")
-        tag = tag.to_s.strip
-      end
-
+      # if tag is provided (e.g. -s tag=master-1234567890), use it. otherwise, cut a new tag.
+      tag = config[:tag] || git_cut_tag
       config[:_git_branch] = tag
       git_sanity_check(tag)
 
