@@ -30,7 +30,9 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     task :prepare do
       new_tag = git_cut_tag
       Capistrano::CLI.ui.say "Your new tag is #{green new_tag}"
-      Capistrano::CLI.ui.say "You can deploy the tag by running:\n  bundle exec cap #{stage} deploy -s tag=#{new_tag}"
+
+      user_command = "bundle exec cap #{stage} deploy -s tag=#{new_tag}"
+      Capistrano::CLI.ui.say "You can deploy the tag by running:\n  #{yellow user_command}"
 
       if config[:bot_deployer_command_formatter]
         command = config[:bot_deployer_command_formatter] % [new_tag, stage]
@@ -132,6 +134,10 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
 
   def green(s)
     "\e[1m\e[32m#{s}\e[0m"
+  end
+
+  def yellow(s)
+    "\e[1m\e[33m#{s}\e[0m"
   end
 
   def purple(s)
