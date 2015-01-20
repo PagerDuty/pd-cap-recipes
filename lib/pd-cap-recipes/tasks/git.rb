@@ -41,9 +41,9 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     end
   end
 
-  after 'rollback_to_tag', 'deploy'
+  after 'deploy_previous_tag', 'deploy'
   desc 'Rollback to the previous git tag deployed by performing a regular deploy.'
-  task :rollback_to_tag do
+  task :deploy_previous_tag do
     git = GitRepo.new
     env = config[:stage]
     tags_from_current_environment = git.tag(l: "DEPLOYED---#{env}---*").split
