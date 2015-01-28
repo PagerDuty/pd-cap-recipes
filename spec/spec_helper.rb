@@ -1,7 +1,6 @@
 require 'capistrano'
 require 'capistrano/cli'
 require 'capistrano-spec'
-require 'active_support/all'
 
 module Capistrano::Spec::LoadTestRecipe
   def load_test_recipe

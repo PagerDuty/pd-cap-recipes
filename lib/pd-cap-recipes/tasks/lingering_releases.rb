@@ -1,5 +1,3 @@
-require 'active_support/core_ext'
-
 Capistrano::Configuration.instance(:must_exist).load do |config|
   namespace :deploy do
 
@@ -70,29 +68,25 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       |host, streams| { host => streams[:stdout].gsub("\n", '') }
     }.reduce(&:merge)
 
-    if releases_by_host.present? && current_release_by_host.present?
-      hosts_with_lingering_releases = releases_by_host.select { |host, releases|
-        !releases.empty? && releases.last != current_release_by_host[host]
-      }
+    return {} if releases_by_host.nil? || releases_by_host.empty?
+    return {} if current_release_by_host.nil? || current_release_by_host.empty?
 
-      # We could lose this if, but I prefer to always return a hash ({}.reduce(&:merge) == nil)
-      if hosts_with_lingering_releases.present?
-        hosts_with_lingering_releases.map { |host, releases|
-          { host => { current: current_release_by_host[host], lingering: releases.last } }
-        }.reduce(&:merge)
-      else
-        {}
-      end
-    else
-      {}
-    end
+    hosts_with_lingering_releases = releases_by_host.select { |host, releases|
+      !releases.empty? && releases.last != current_release_by_host[host]
+    }
 
+    # We could lose this if, but I prefer to always return a hash ([].reduce(&:merge) == nil)
+    return {} if hosts_with_lingering_releases.empty?
+
+    hosts_with_lingering_releases.map { |host, releases|
+      { host => { current: current_release_by_host[host], lingering: releases.last } }
+    }.reduce(&:merge)
   end
 
   def run_command_get_std_stream(command, exception_on_stderr)
     result = {}
     run command do |channel, stream, data|
-      if stream == :err && data.present? && exception_on_stderr
+      if stream == :err && data && exception_on_stderr
         raise Exception("Error performing command `#{command}` on #{channel[:host]}, stderr " +
           "was: #{data} ")
       end

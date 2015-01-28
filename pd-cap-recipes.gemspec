@@ -27,5 +27,4 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'grit', '~> 2.5.0'
   s.add_runtime_dependency 'json'
   s.add_runtime_dependency 'mysql2'
-  s.add_runtime_dependency 'activesupport'
 end
