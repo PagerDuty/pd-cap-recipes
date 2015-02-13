@@ -44,6 +44,31 @@ Another nice thing this recipe does is keep an up to date tag for each environme
 
     git diff production
 
+### Deploy Comments
+
+In order to enable custom deploy comments which are sent via HipChat; you will need to follow these steps:
+
+1. If `hipchat` gem is not part of your project, add it. It's not part `pd-cap-recipes` since it's an optional feature. Last known good version is `1.4.0`. Basically, you need a version which supports the following functionality:
+
+  ```ruby
+  # hipchat.send
+  # hipchat.send_options
+  # https://github.com/hipchat/hipchat-rb/blob/master/lib/hipchat/capistrano2.rb
+  hipchat.send('deploying things', hipchat.send_options)
+  ```
+
+  ```ruby
+  gem 'hipchat', '~> 1.4.0'
+  ```
+
+2. Add a before hook in your deployment file.
+
+  ```ruby
+  before 'deploy', 'hipchat:custom_comment'
+  ```
+
+When you deploy, you will prompted for a comment. This will be used to notify your coworkers via HipChat.
+
 ### Improved Logging
 
 The entire output produced by capistrano is logged to `log/capistrano.log`.
