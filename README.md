@@ -1,3 +1,5 @@
+[![Dependency Status](https://img.shields.io/gemnasium/PagerDuty/pd-cap-recipes.svg)](https://gemnasium.com/PagerDuty/pd-cap-recipes)
+
 # Pagerduty Capistrano Recipes Collection
 
 These are various capistrano recipes used at [PagerDuty Inc.](http://www.pagerduty.com/). Feel free to fork and contribute to them.
