@@ -77,6 +77,16 @@ The entire output produced by capistrano is logged to `log/capistrano.log`.
 
 There's also a performance report printed at the end of every deploy to help you find slow tasks in your deployments and keep things snappy.
 
+### Colouring your console output
+
+There are some standard functions to colour your output, for example
+
+  ```ruby
+  after "deploy" do
+    Capistrano::CLI.ui.say green "Nice job!"
+  end
+  ```
+
 #License and Copyright
 Copyright (c) 2014, PagerDuty
 All rights reserved.
