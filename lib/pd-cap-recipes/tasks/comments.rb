@@ -3,13 +3,13 @@ COMMENT_FILE = "/var/tmp/cap_message.txt"
 Capistrano::Configuration.instance(:must_exist).load do |config|
   namespace :hipchat do
     task :custom_comment do
-      hipchat.send(comment, hipchat.send_options)
+      hipchat.send(comment, hipchat.send_options) unless fetch(:skip_hipchat, false)
     end
   end
 
   # Make sure that there's a comment for this deploy
   set :comment do
-    unless config[:comment_value]
+    unless config[:comment_value] || fetch(:skip_hipchat, false)
       file = COMMENT_FILE
       FileUtils.rm(file) if File.exists?(file)
       if no_comment?

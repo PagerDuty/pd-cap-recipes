@@ -71,19 +71,21 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     end
 
     task :update_tag_for_stage do
-      git = GitRepo.new
-      env = config[:stage]
-
-      git.delete_remote_tag env
-      git.remote_tag env
-      git.remote_tag "DEPLOYED---#{env}---#{Time.now.utc.to_i}"
+      unless fetch(:skip_git, false)
+        git = GitRepo.new
+        env = config[:stage]
+  
+        git.delete_remote_tag env
+        git.remote_tag env
+        git.remote_tag "DEPLOYED---#{env}---#{Time.now.utc.to_i}"
+      end
     end
 
     task :validate_branch_is_tag do
       # Make sure an external recipe is not overriding the branch variable by
       # doing something like
       # set :branch, :master
-      if config[:branch] != config[:_git_branch]
+      if config[:branch] != config[:_git_branch] && !fetch(:skip_git, false)
         raise Capistrano::Error.new("The current branch do not seems to match the cached version. Make sure you are not overriding it in your config by doing something like 'set :deploy, 'release''")
       end
     end
