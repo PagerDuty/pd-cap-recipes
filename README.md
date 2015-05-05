@@ -46,6 +46,14 @@ Another nice thing this recipe does is keep an up to date tag for each environme
 
     git diff production
 
+You can skip git integration altogether when needed using
+
+    $ bundle exec cap vagrant deploy -s skip_git=true
+
+or you could use set to selectively disable, useful if you have a local/dev environment you do not want to check:
+
+    set :skip_git, true
+
 ### Deploy Comments
 
 In order to enable custom deploy comments which are sent via HipChat; you will need to follow these steps:
@@ -71,6 +79,14 @@ In order to enable custom deploy comments which are sent via HipChat; you will n
 
 When you deploy, you will prompted for a comment. This will be used to notify your coworkers via HipChat.
 
+Like with the git integration, you can selectively disable this integration when/where needed:
+
+    $ bundle exec cap vagrant deploy -s skip_hipchat=true
+
+or...
+
+    set :skip_hipchat, true
+
 ### Improved Logging
 
 The entire output produced by capistrano is logged to `log/capistrano.log`.
@@ -88,6 +104,20 @@ There are some standard functions to colour your output, for example
     Capistrano::CLI.ui.say green "Nice job!"
   end
   ```
+
+### Deploy Slowly
+
+There is a task 'deploy:slow' that will cause deployment to be segregated into blocks, based on a percentage of target hosts. The percentage defaults to 10% rounding down, but can be set with the config value :slow_block_size:
+
+    $ bundle exec cap production deploy:slow -s slow_block_size=0.25
+
+or in code...
+
+    set :slow_block_size, 0.25
+
+If you have 100 machines it will start by deploying to 10, then to another 10 and thereon until all machines have been deployed to.
+
+    $ bundle exec cap production deploy:slow
 
 #License and Copyright
 Copyright (c) 2014, PagerDuty
