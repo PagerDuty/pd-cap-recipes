@@ -24,6 +24,19 @@ class GitRepo
   end
 end
 
+def git_cut_tag
+  repo = Grit::Repo.new('.')
+  raise 'You are currently in a detached head state. Cannot cut tag.' unless repo.head
+
+  new_tag = "#{repo.head.name}-#{Time.now.utc.to_i}"
+
+  git = GitRepo.new
+  git.fetch
+  git.remote_tag new_tag
+
+  new_tag
+end
+
 Capistrano::Configuration.instance(:must_exist).load do |config|
   namespace :deploy do
     desc 'Cuts a tag for deployment and prints out further instructions to finalize deployment'
@@ -89,19 +102,6 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
         raise Capistrano::Error.new("The current branch do not seems to match the cached version. Make sure you are not overriding it in your config by doing something like 'set :deploy, 'release''")
       end
     end
-  end
-
-  def git_cut_tag
-    repo = Grit::Repo.new('.')
-    raise 'You are currently in a detached head state. Cannot cut tag.' unless repo.head
-
-    new_tag = "#{repo.head.name}-#{Time.now.utc.to_i}"
-
-    git = GitRepo.new
-    git.fetch
-    git.remote_tag new_tag
-
-    new_tag
   end
 
   def git_sanity_check(tag)
