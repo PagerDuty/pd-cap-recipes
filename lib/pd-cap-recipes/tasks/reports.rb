@@ -1,5 +1,20 @@
 require 'net/ssh/gateway'
 require 'net/ssh'
+require 'pd-cap-recipes/util'
+
+# Get's the connection details from Capistrano configuration.
+def get_connection_details
+  servers = find_servers_for_task(current_task)
+  user = fetch(:user)
+  deploy_to = fetch(:deploy_to)
+  gateway_host = nil
+  begin
+    gateway_config = fetch(:gateway)
+    gateway_host = gateway_config.keys.first
+  rescue
+  end
+  return servers, user, gateway_host
+end
 
 Capistrano::Configuration.instance(:must_exist).load do |config|
   namespace :report do
@@ -8,7 +23,8 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       Print out which versions are installed on machines
     DESC
     task :list_releases do
-      info = collect_version_info_for_cluster
+      servers, user, gateway_host = get_connection_details
+      info = collect_version_info(servers, user, gateway_host)
       info.each do |machine, folder_info| puts "Releases on #{machine}:"
         folder_info.each do |folder|
           puts "  #{folder[:folder]} -> #{folder[:revision]}"
@@ -19,7 +35,8 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     desc <<-DESC
     DESC
     task :check_current_version do
-        rev_info = get_current_rev_info
+        servers, user, gateway_host = get_connection_details
+        rev_info = get_current_rev_info(servers, user, gateway_host)
         revs = Set.new
         rev_info.each do |host, rev|
           revs.add(rev)
@@ -42,7 +59,8 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       machines
     DESC
     task :revision_sets do
-      info = collect_version_info_for_cluster
+      servers, user, gateway_host = get_connection_details
+      info = collect_version_info(servers, user, gateway_host)
 
       current_round = info.keys.reverse
       next_round = []
@@ -74,70 +92,5 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
         puts "Revision set\n  #{revision_set.to_a.join("\n  ")}\nfound on hosts\n  #{hosts_for_set.to_a.join("\n  ")}\n"
       end
     end
-  end
-
-  # Return a hash with host -> current revision mapping
-  def get_current_rev_info
-    host_versions = {}
-    ssh_to_cluster do |machine, ssh|
-        host_versions[machine.host] = ssh.exec!("cat #{deploy_to}/current/REVISION").strip
-    end
-    return host_versions
-  end
-
-  # Return a hash with host -> hash of information on release folder mapping
-  def collect_version_info_for_cluster
-    cluster_info = {}
-    ssh_to_cluster do |machine, ssh|
-      ls_output = ssh.exec!("ls -l #{deploy_to}/releases/")
-      folder_info = parse_ls_l(ls_output)
-      folder_info.each do |info|
-        revision = ssh.exec!("cat #{deploy_to}/releases/#{info[:folder]}/REVISION")
-        info[:revision] = revision.strip
-      end
-      cluster_info[machine.host] = folder_info
-    end
-    return cluster_info
-  end
-
-  # Allow passing a block to process on each cluster/stage machine
-  def  ssh_to_cluster
-    servers = find_servers_for_task(current_task)
-    user = fetch(:user)
-    deploy_to = fetch(:deploy_to)
-
-    gateway_config = fetch(:gateway, nil)
-    if gateway_config != nil
-      gateway_host = fetch(:gateway, {'localhost'=>nil}).keys.first
-      gateway = Net::SSH::Gateway.new(gateway_host, user)
-      servers.each do |machine|
-        gateway.ssh(machine, user) do |ssh|
-          yield machine, ssh
-        end
-      end
-      gateway.shutdown!
-    else
-      servers.each do |machine|
-        Net::SSH.start(machine.host, user) do |ssh|
-          yield machine, ssh
-        end
-      end
-    end
-  end
-
-  # Parse the output of 'ls -l' command return hash with prased details
-  def parse_ls_l(text)
-    file_info = []
-    lines = text.split("\n")[1..-1]
-    lines.each do |line|
-      parts = line.split
-      ls_info = {}
-      ls_info[:permissions] = parts[0]
-      ls_info[:owner] = parts[2]
-      ls_info[:group] = parts[3]
-      ls_info[:folder] = parts[8]
-      file_info.push(ls_info)
-    end
-    return file_info
   end
 end
