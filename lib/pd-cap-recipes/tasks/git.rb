@@ -45,8 +45,17 @@ class GitRepo
   end
 
   # Get the first eight characters of commit hash for given tag, branch or hash
-  def get_short_hash(commitish)
+  def get_short_hash(commitish='HEAD')
     return get_hash(commitish)[0,8]
+  end
+
+  def current_branch
+    return @git.run('', 'rev-parse', '', {}, ['--abbrev-ref', 'HEAD']).chomp
+  end
+
+  # Return array of "<remote>/<branch>" values containing given commit hash
+  def remote_branches_containing(hash)
+    return @git.run('', 'branch', '', {}, ['-r', '--contains', hash])
   end
 
   # get the hash for branch/tag in the remote origin
