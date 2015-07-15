@@ -5,9 +5,9 @@ Grit::Git.git_timeout = 600 # seconds
 Grit::Git.git_max_size = 104857600 # 100 megs
 
 class GitRepo
-  def initialize(skip_git=false)
+  def initialize()
     @git = Grit::Git.new(File.join('.', '.git'))
-    @skip_git = skip_git
+    @repo = Grit::Repo.new('.')
   end
 
   def method_missing(*args, &block)
@@ -16,78 +16,89 @@ class GitRepo
 
   def delete_remote_tag(tag)
     @git.tag d: tag
-    @git.push({}, 'origin', "refs/tags/#{tag}") unless @skip_git
+    @git.push({raise: true}, 'origin', "refs/tags/#{tag}")
   end
 
   def remote_tag(tag, push: true)
-    @git.tag({}, tag)
-    @git.push({}, 'origin', "refs/tags/#{tag}") unless @skip_git
+    @git.tag({raise: true}, tag)
+    @git.push({raise: true}, 'origin', "refs/tags/#{tag}")
   end
-end
 
-# Per our critieria we check if repository is in releasable state.
-# Make sure that repo is not in a detached state, that no local files have
-# modifications, and that there are no new files. Basically this makes sure
-# the repo is in a state in line with what is commited.
-def check_repo_is_releasable
-  releasable = true
-  git = GitRepo.new
-  unless head_exists(git)
-    logger.important('You are currently in a detached head state. Cannot cut tag.')
-    releasable = false
+  # Fetch latest from origin and check given hash exists in origin
+  def check_tag_exists_in_origin(tag, origin_name='origin')
+    hash = @git.rev_parse({raise: true}, tag)
+    output = @git.ls_remote({raise: true}, origin_name, "refs/tags/#{tag}")
+    if output =~ /#{hash}\s*refs\/tags\/#{tag}/
+      return true
+    end
+    return false
   end
-  if has_local_modifications?(git)
-    logger.important("It appears you have local modifications, you cannot create a release, tag it and push it unless you have checked in all modifications.")
-    releasable = false
-  end
-  return releasable
-end
 
-def head_exists(git=GitRepo.new)
-  if git.head
+  # return Grit::Head object or nil if in detached state
+  def head
+    return @repo.head
+  end
+
+  # return the latest commit's hash
+  def get_hash(commitish='HEAD')
+    return @git.rev_parse({raise: true}, commitish)
+  end
+
+  # Get the first eight characters of commit hash for given tag, branch or hash
+  def get_short_hash(commitish)
+    return get_hash(commitish)[0,8]
+  end
+
+  # get the hash for branch/tag in the remote origin
+  def get_hash_for_remote(tag)
+    output = @git.ls_remote({raise: true}, origin_name)
+    output.split.each do |line|
+      if line=~ /[a-z0-9]{40}\s*refs\/(tags|heads)\/#{tag}/
+        puts "GOT ONE"
+      end
+    end
+    return nil
+  end
+
+  def head_exists?
+    if @repo.head
+      return true
+    end
+    return false
+  end
+
+  def has_local_modifications?
+    if @git.status({raise: true}, '--porcelain') == ''
+      return false
+    end
     return true
   end
-  return false
 end
-
-def has_local_modifications?(git=GitRepo.new)
-  if git.diff_index({raise: true}, '--name-only', 'HEAD', '--') == ''
-    return true
-  end
-  return false
-end
-
 
 # Create a new tag using the name of current branch and a UTC timestamp, then
 # push code & tag to remote.
-def git_cut_tag
-  repo = Grit::Repo.new('.')
-  raise 'You are currently in a detached head state. Cannot cut tag.' unless repo.head
-
-  new_tag = "#{repo.head.name}-#{Time.now.utc.to_i}"
-  git = GitRepo.new(fetch(:skip_git, false))
+def git_cut_tag(git=GitRepo.new)
+  unless git.head_exists?
+    raise 'You are currently in a detached head state. Cannot cut tag.'
+  end
+  new_tag = "#{git.head.name}-#{Time.now.utc.to_i}"
   git.fetch
   git.remote_tag new_tag
-
   return new_tag
-end
-
-# Get the latest commit hash for given repo, or repo at location . if none
-# given.
-def get_commit_hash
-end
-
-# Get the first eight characters of commit hash for given tag
-def get_hash_for_commitish(tag)
-  git = GitRepo.new
-  return (git.rev_parse({raise: true}, tag))[0,8]
 end
 
 Capistrano::Configuration.instance(:must_exist).load do |config|
   namespace :deploy do
     desc 'Cuts a tag for deployment and prints out further instructions to finalize deployment'
     task :prepare do
-      new_tag = git_cut_tag
+      skip_git = fetch(:skip_git, false)
+      if skip_git
+        Capistrano::CLI.ui.say yellow "Skipping prepare as 'skip_git' option is enabled"
+        return
+      end
+
+      git = GitRepo.new
+      new_tag = git_cut_tag(git)
       Capistrano::CLI.ui.say "Your new tag is #{green new_tag}"
 
       user_command = "bundle exec cap #{stage} deploy -s tag=#{new_tag}"
@@ -147,6 +158,12 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
 
     # NOTE: looking at projects in Github I'm not seeing these tags.
     task :update_tag_for_stage do
+      skip_git = fetch(:skip_git, false)
+      if skip_git
+        Capistrano::CLI.ui.say yellow "Skipping update_tag_for_stage as 'skip_git' option is enabled"
+        return
+      end
+
       logger.important("Updating the tag for stage #{stage}")
       git = GitRepo.new(fetch(:skip_git, false))
       env = config[:stage]
@@ -157,10 +174,15 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     end
 
     task :validate_branch_is_tag do
+      skip_git = fetch(:skip_git, false)
+      if skip_git
+        Capistrano::CLI.ui.say yellow "Skipping validate_branch_is_tag as 'skip_git' option is enabled"
+        return
+      end
       # Make sure an external recipe is not overriding the branch variable by
       # doing something like
       # set :branch, :master
-      if config[:branch] != config[:_git_branch] && !fetch(:skip_git, false)
+      if config[:branch] != config[:_git_branch]
         raise Capistrano::Error.new("The current branch do not seems to match the cached version. Make sure you are not overriding it in your config by doing something like 'set :deploy, 'release''")
       end
     end
@@ -169,7 +191,13 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
   # Ensures that the code with given tag is a descendent of the deployed revision.
   # Relies on current_revison Cap call through safe_current_revision
   def git_sanity_check(tag)
-    git  = GitRepo.new(fetch(:skip_git, false))
+    skip_git = fetch(:skip_git, false)
+    if skip_git
+      Capistrano::CLI.ui.say yellow "Skipping git_sanity_check as 'skip_git' option is enabled"
+      return
+    end
+
+    git  = GitRepo.new
     deploy_sha = git.show_ref({raise: true}, '-s', tag).chomp
 
     # See this article for info on how this works:
@@ -198,7 +226,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     confirm msg
   end
 
-  # Current_revision will throw an exception if this is the first deploy...
+  # current_revision will throw an exception if this is the first deploy...
   # We want to use this value in decision making and therefore handle the
   # exception  and return nil if no current version found.
   #
