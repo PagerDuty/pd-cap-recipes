@@ -19,7 +19,7 @@ class GitRepo
     @git.push({raise: true}, 'origin', "refs/tags/#{tag}")
   end
 
-  def remote_tag(tag, push: true)
+  def remote_tag(tag)
     @git.tag({raise: true}, tag)
     @git.push({raise: true}, 'origin', "refs/tags/#{tag}")
   end
@@ -59,17 +59,17 @@ class GitRepo
   end
 
   # get the hash for branch/tag in the remote origin
-  def get_hash_for_remote(tag)
+  def has_remote?(commitish, origin_name='origin')
     output = @git.ls_remote({raise: true}, origin_name)
     output.split.each do |line|
-      if line=~ /[a-z0-9]{40}\s*refs\/(tags|heads)\/#{tag}/
-        puts "GOT ONE"
+      if line=~ /[a-z0-9]{40}\s*refs\/(tags|heads)\/#{commitish}/
+        return true
       end
     end
     return nil
   end
 
-  def head_exists?
+  def head_detached?
     if @repo.head
       return true
     end
@@ -87,7 +87,7 @@ end
 # Create a new tag using the name of current branch and a UTC timestamp, then
 # push code & tag to remote.
 def git_cut_tag(git=GitRepo.new)
-  unless git.head_exists?
+  unless git.head_detached?
     raise 'You are currently in a detached head state. Cannot cut tag.'
   end
   new_tag = "#{git.head.name}-#{Time.now.utc.to_i}"
