@@ -63,27 +63,11 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       info = collect_version_info(servers, user, gateway_host)
 
       current_round = info.keys.reverse
-      next_round = []
-      sets = []
       sets_to_machine = Hash.new {|h, k| h[k] = []} # on new key return empty array
 
-      while not current_round.empty?
-        current_machine = current_round.pop
-        current_set = Set.new info[current_machine].collect {|item| item[:revision]}
-        sets_to_machine[current_set].push current_machine
-
-        while not current_round.empty?
-          next_machine = current_round.pop
-          next_set = Set.new info[next_machine].collect {|item| item[:revision]}
-          if next_set == current_set
-            sets_to_machine[current_set].push next_machine
-            next
-          end
-          next_round.push next_machine
-        end
-
-        sets.push current_set
-        current_round = next_round
+      info.each do |machine, revinfo|
+        current_set = Set.new revinfo.collect {|item| item[:revision]}
+        sets_to_machine[current_set].push machine
       end
 
       puts "Found #{sets_to_machine.keys.length} distinct set(s) of deployed revisions\n"
