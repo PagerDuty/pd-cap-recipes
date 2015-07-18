@@ -70,7 +70,7 @@ class GitRepo
   end
 
   def head_detached?
-    if @repo.head
+    if @repo.head == ""
       return true
     end
     return false
@@ -141,7 +141,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
 
   namespace :git do
 
-    # WANING: This is dangerous. TL;DR don't use this.
+    # WANING: This is dangerous. TL;DR don't reuse this.
     #
     # When the deploy task runs, a hook defined above in this file runs
     # calling  validate_branch_is_tag which then tries to access :branch

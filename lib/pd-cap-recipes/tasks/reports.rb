@@ -25,7 +25,8 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     task :list_releases do
       servers, user, gateway_host = get_connection_details
       info = collect_version_info(servers, user, gateway_host)
-      info.each do |machine, folder_info| puts "Releases on #{machine}:"
+      info.each do |machine, folder_info|
+        puts "Releases on #{machine}:"
         folder_info.each do |folder|
           puts "  #{folder[:folder]} -> #{folder[:revision]}"
         end
@@ -33,6 +34,8 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     end
 
     desc <<-DESC
+      Print out the current version used on all servers, or if there is more
+      than one 'current version' found report on them.
     DESC
     task :check_current_version do
         servers, user, gateway_host = get_connection_details
@@ -43,15 +46,15 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
         end
 
         if revs.length > 1
-          logger.important("There are more than 1 current revisions! Please update machines so that all are running the same current revision")
-          logger.important("Found #{revs.length} current revision values:")
+          puts "There are more than 1 current revisions! Please update machines so that all are running the same current revision"
+          puts "Found #{revs.length} current revision values:"
           rev_info.each do |host, rev|
-            logger.important("#{host} -> #{rev}")
+            puts "#{host} -> #{rev}"
           end
           return
         end
 
-        logger.important("The current revision installed on #{rev_info.keys.length} machines is #{revs.first}")
+        puts "The current revision installed on #{rev_info.keys.length} machines is '#{revs.first}'"
     end
 
     desc <<-DESC
