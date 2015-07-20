@@ -70,7 +70,7 @@ class GitRepo
   end
 
   def head_detached?
-    if @repo.head == ""
+    if @repo.head == nil
       return true
     end
     return false
