@@ -87,7 +87,7 @@ end
 # Create a new tag using the name of current branch and a UTC timestamp, then
 # push code & tag to remote.
 def git_cut_tag(git=GitRepo.new)
-  unless git.head_detached?
+  if git.head_detached?
     raise 'You are currently in a detached head state. Cannot cut tag.'
   end
   new_tag = "#{git.head.name}-#{Time.now.utc.to_i}"
