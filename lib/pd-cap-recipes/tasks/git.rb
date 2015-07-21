@@ -103,7 +103,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       skip_git = fetch(:skip_git, false)
       if skip_git
         Capistrano::CLI.ui.say yellow "Skipping prepare as 'skip_git' option is enabled"
-        return
+        next
       end
 
       git = GitRepo.new
@@ -170,11 +170,11 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       skip_git = fetch(:skip_git, false)
       if skip_git
         Capistrano::CLI.ui.say yellow "Skipping update_tag_for_stage as 'skip_git' option is enabled"
-        return
+        next
       end
 
       logger.important("Updating the tag for stage #{stage}")
-      git = GitRepo.new(fetch(:skip_git, false))
+      git = GitRepo.new
       env = config[:stage]
   
       git.delete_remote_tag env
@@ -186,7 +186,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       skip_git = fetch(:skip_git, false)
       if skip_git
         Capistrano::CLI.ui.say yellow "Skipping validate_branch_is_tag as 'skip_git' option is enabled"
-        return
+        next
       end
       # Make sure an external recipe is not overriding the branch variable by
       # doing something like
