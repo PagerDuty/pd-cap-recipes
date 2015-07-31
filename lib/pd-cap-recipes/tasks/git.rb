@@ -207,7 +207,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     end
 
     git  = GitRepo.new
-    deploy_sha = git.show_ref({raise: true}, '-s', tag).chomp
+    deploy_sha = git.rev_parse({:verify => true}, tag).chomp
 
     # See this article for info on how this works:
     # http://stackoverflow.com/questions/3005392/git-how-can-i-tell-if-one-commit-is-a-descendant-of-another-commit
@@ -231,7 +231,10 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
   end
 
   def continue_with_reverse_deploy(deploy_sha)
-    msg = "You are trying to deploy #{deploy_sha}, which does not contain #{safe_current_revision}, the commit currently running. Are you sure you want to continue? #{green "[No|yes]"}"
+    msg = "You are trying to deploy #{deploy_sha}, which does not contain #{safe_current_revision}, " \
+      "the commit currently running. If you are deploying a previous version you will get this message. " \
+      "If you are deploying from a branch that does not contain the code in the current release you will " \
+      "get this messages. Are you sure you want to continue? #{green "[No|yes]"}"
     confirm msg
   end
 
