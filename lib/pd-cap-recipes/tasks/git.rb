@@ -234,7 +234,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     msg = "You are trying to deploy #{deploy_sha}, which does not contain #{safe_current_revision}, " \
       "the commit currently running. If you are deploying a previous version you will get this message. " \
       "If you are deploying from a branch that does not contain the code in the current release you will " \
-      "get this messages. Are you sure you want to continue? #{green "[No|yes]"}"
+      "get this message. Are you sure you want to continue? #{green "[No|yes]"}"
     confirm msg
   end
 
