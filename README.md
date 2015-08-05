@@ -1,8 +1,7 @@
 # Pagerduty Capistrano Recipes Collection
 
-[![Build Status](https://img.shields.io/travis/pagerduty/pd-cap-recipes/master.svg)](https://travis-ci.org/pagerduty/pd-cap-recipes)
+[![Build Status](https://img.shields.io/travis/PagerDuty/pd-cap-recipes/master.svg)](https://travis-ci.org/PagerDuty/pd-cap-recipes)
 [![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://tldrlegal.com/license/mit-license)
-[![RubyGems](http://img.shields.io/gem/v/pd-cap-recipes.svg)](https://rubygems.org/gems/pd-cap-recipes)
 [![Dependency Status](https://img.shields.io/gemnasium/PagerDuty/pd-cap-recipes.svg)](https://gemnasium.com/PagerDuty/pd-cap-recipes)
 
 These are various capistrano recipes used at [PagerDuty Inc.](http://www.pagerduty.com/). Feel free to fork and contribute to them.
