@@ -26,6 +26,7 @@ class GitRepo
 
   # Fetch latest from origin and check given hash exists in origin
   def check_tag_exists_in_origin(tag, origin_name='origin')
+    raise RuntimeError, "invalid tag: #{string.inspect}" unless string.is_a?(String)
     hash = @git.rev_parse({raise: true}, tag)
     output = @git.ls_remote({raise: true}, origin_name, "refs/tags/#{tag}")
     if output =~ /#{hash}\s*refs\/tags\/#{tag}/
@@ -40,12 +41,14 @@ class GitRepo
   end
 
   # return the latest commit's hash
-  def get_hash(commitish='HEAD')
-    return @git.rev_parse({raise: true}, commitish)
+  def get_hash(commitish='HEAD', opts={raise: true})
+    commitish = commitish.to_s
+    return @git.rev_parse(opts, commitish).chomp
   end
 
   # Get the first eight characters of commit hash for given tag, branch or hash
   def get_short_hash(commitish='HEAD')
+    commitish = commitish.to_s
     return get_hash(commitish)[0,8]
   end
 
@@ -60,6 +63,7 @@ class GitRepo
 
   # get the hash for branch/tag in the remote origin
   def has_remote?(commitish, origin_name='origin')
+    commitish = commitish.to_s
     output = @git.ls_remote({raise: true}, origin_name)
     output.split.each do |line|
       if line=~ /[a-z0-9]{40}\s*refs\/(tags|heads)\/#{commitish}/
@@ -206,13 +210,24 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       return
     end
 
-    git  = GitRepo.new
-    deploy_sha = git.rev_parse({:verify => true}, tag).chomp
+    if not is_already_deployed
+      Capistrano::CLI.ui.say yellow "It appears you have not deployed yet, skipping sanity check"
+      return
+    end
 
-    # See this article for info on how this works:
-    # http://stackoverflow.com/questions/3005392/git-how-can-i-tell-if-one-commit-is-a-descendant-of-another-commit
-    if ENV['REVERSE_DEPLOY_OK'].nil?
-      if safe_current_revision && git.merge_base({}, deploy_sha, safe_current_revision).chomp != git.rev_parse({ :verify => true }, safe_current_revision).chomp
+    git  = GitRepo.new
+    deploy_sha = git.get_hash(tag, {raise: true, verify: true})
+
+    # If we are in a non-Production environment and we have enabled it allow reverse deploy
+    reverse_ok = (ENV['REVERSE_DEPLOY_OK'] || fetch(:reverse_deploy_ok, false)) && fetch(:stage) != 'production'
+
+
+    unless reverse_ok
+      # See this article for info on how this works:
+      # http://stackoverflow.com/questions/3005392/git-how-can-i-tell-if-one-commit-is-a-descendant-of-another-commit
+      current_version_sha = git.get_hash(safe_current_revision, {raise: true, verify: true})
+      common_version_sha = safe_current_revision && git.merge_base({}, deploy_sha, safe_current_revision).chomp
+      if common_version_sha != current_version_sha
         unless continue_with_reverse_deploy(deploy_sha)
           raise "You are trying to deploy #{deploy_sha}, which does not contain #{safe_current_revision}," + \
             " the commit currently running.  Operation aborted for your safety." + \
@@ -255,5 +270,10 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       logger.info "*" * 80
       nil
     end
+  end
+
+  # If a current revision exists we assume we've deployed before.
+  def is_already_deployed
+    return false if safe_current_revision.nil?
   end
 end
