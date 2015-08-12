@@ -230,12 +230,12 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     end
 
     unless is_already_deployed
-      Capistrano::CLI.ui.say yellow "It appears you have not deployed yet, skipping sanity check"
+      Capistrano::CLI.ui.say yellow "It appears you have never deployed this app yet, continuing without sanity checking revision to deploy"
       return true
     end
 
     if reverse_ok
-      Capistrano::CLI.ui.say yellow 'Skipping reverse deploy check flag found and non-production environment.'
+      Capistrano::CLI.ui.say yellow 'reverse_deploy_ok - continuing without sanity checking revision to deploy'
       return true
     end
 
@@ -282,7 +282,6 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
 
   # If a current revision exists we assume we've deployed before.
   def is_already_deployed
-    return false if safe_current_revision.nil?
-    return true
+    return !!safe_current_revision
   end
 end
