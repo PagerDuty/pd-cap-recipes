@@ -26,6 +26,7 @@ class GitRepo
 
   # Fetch latest from origin and check given hash exists in origin
   def check_tag_exists_in_origin(tag, origin_name='origin')
+    raise "invalid tag: #{string.inspect}" unless string.is_a?(String)
     hash = @git.rev_parse({raise: true}, tag)
     output = @git.ls_remote({raise: true}, origin_name, "refs/tags/#{tag}")
     if output =~ /#{hash}\s*refs\/tags\/#{tag}/
@@ -40,12 +41,14 @@ class GitRepo
   end
 
   # return the latest commit's hash
-  def get_hash(commitish='HEAD')
-    return @git.rev_parse({raise: true}, commitish)
+  def get_hash(commitish='HEAD', opts={raise: true})
+    commitish = commitish.to_s
+    return @git.rev_parse(opts, commitish).chomp
   end
 
   # Get the first eight characters of commit hash for given tag, branch or hash
   def get_short_hash(commitish='HEAD')
+    commitish = commitish.to_s
     return get_hash(commitish)[0,8]
   end
 
@@ -60,6 +63,7 @@ class GitRepo
 
   # get the hash for branch/tag in the remote origin
   def has_remote?(commitish, origin_name='origin')
+    commitish = commitish.to_s
     output = @git.ls_remote({raise: true}, origin_name)
     output.split.each do |line|
       if line=~ /[a-z0-9]{40}\s*refs\/(tags|heads)\/#{commitish}/
@@ -200,28 +204,47 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
   # Ensures that the code with given tag is a descendent of the deployed revision.
   # Relies on current_revison Cap call through safe_current_revision
   def git_sanity_check(tag)
-    skip_git = fetch(:skip_git, false)
-    if skip_git
-      Capistrano::CLI.ui.say yellow "Skipping git_sanity_check as 'skip_git' option is enabled"
-      return
-    end
+    return if should_skip_sanity_check?
 
     git  = GitRepo.new
-    deploy_sha = git.rev_parse({:verify => true}, tag).chomp
+    opts = {raise: true, verify: true}
+    deploy_sha = git.get_hash(tag, opts)
 
     # See this article for info on how this works:
     # http://stackoverflow.com/questions/3005392/git-how-can-i-tell-if-one-commit-is-a-descendant-of-another-commit
-    if ENV['REVERSE_DEPLOY_OK'].nil?
-      if safe_current_revision && git.merge_base({}, deploy_sha, safe_current_revision).chomp != git.rev_parse({ :verify => true }, safe_current_revision).chomp
-        unless continue_with_reverse_deploy(deploy_sha)
-          raise "You are trying to deploy #{deploy_sha}, which does not contain #{safe_current_revision}," + \
-            " the commit currently running.  Operation aborted for your safety." + \
-            " Set REVERSE_DEPLOY_OK to override."
-        end
-      end
-    else
-      logger.info 'WARNING: Skipping reverse deploy check because REVERSE_DEPLOY_OK is set.'
+    current_version_sha = git.get_hash(safe_current_revision, opts)
+    common_version_sha = git.merge_base({}, deploy_sha, safe_current_revision).chomp
+    return if common_version_sha == current_version_sha
+
+    raise "You are trying to deploy #{deploy_sha}, which does not contain #{safe_current_revision}," + \
+      " the commit currently running.  Operation aborted for your safety." + \
+      " Set REVERSE_DEPLOY_OK to override." unless continue_with_reverse_deploy(deploy_sha)
+  end
+
+  # Coniditons for skipping git sanity check
+  def should_skip_sanity_check?
+    skip_git = fetch(:skip_git, false)
+    if skip_git
+      Capistrano::CLI.ui.say yellow "Skipping git_sanity_check as 'skip_git' option is enabled"
+      return true
     end
+
+    unless is_already_deployed
+      Capistrano::CLI.ui.say yellow "It appears you have never deployed this app yet, continuing without sanity checking revision to deploy"
+      return true
+    end
+
+    if reverse_ok
+      Capistrano::CLI.ui.say yellow 'reverse_deploy_ok - continuing without sanity checking revision to deploy'
+      return true
+    end
+
+    return false
+  end
+
+  # If we are in a non-Production environment and we have enabled it allow reverse deploy
+  def reverse_ok
+    return (ENV['REVERSE_DEPLOY_OK'] || fetch(:reverse_deploy_ok, false)) && fetch(:stage) != 'production'
   end
 
   def confirm(msg)
@@ -253,7 +276,12 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       logger.info "An exception as occured while fetching the current revision. This is to be expected if this is your first deploy to this machine. Othewise, something is broken :("
       logger.info e.inspect
       logger.info "*" * 80
-      nil
+      return nil
     end
+  end
+
+  # If a current revision exists we assume we've deployed before.
+  def is_already_deployed
+    return !safe_current_revision.nil?
   end
 end

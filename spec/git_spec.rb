@@ -9,6 +9,7 @@ describe "Git sanity check", :recipe => true do
     describe "with a current_revision" do
       before(:each) do
         config.set :current_revision, '1'
+        config.set :stage, 'development'
       end
 
       let(:task_lambda) {lambda { config.find_and_execute_task 'git:validate_branch_is_tag' }}
@@ -19,6 +20,7 @@ describe "Git sanity check", :recipe => true do
       end
 
       it "should not complain is the branch variable get overridden" do
+        config.set :reverse_deploy_ok, true
         expect(task_lambda).to_not raise_error
       end
 
