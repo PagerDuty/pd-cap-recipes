@@ -282,6 +282,6 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
 
   # If a current revision exists we assume we've deployed before.
   def is_already_deployed
-    return !!safe_current_revision
+    return !safe_current_revision.nil?
   end
 end
