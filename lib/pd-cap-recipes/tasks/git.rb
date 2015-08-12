@@ -26,7 +26,7 @@ class GitRepo
 
   # Fetch latest from origin and check given hash exists in origin
   def check_tag_exists_in_origin(tag, origin_name='origin')
-    raise RuntimeError, "invalid tag: #{string.inspect}" unless string.is_a?(String)
+    raise "invalid tag: #{string.inspect}" unless string.is_a?(String)
     hash = @git.rev_parse({raise: true}, tag)
     output = @git.ls_remote({raise: true}, origin_name, "refs/tags/#{tag}")
     if output =~ /#{hash}\s*refs\/tags\/#{tag}/
@@ -210,7 +210,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       return
     end
 
-    if not is_already_deployed
+    unless  is_already_deployed
       Capistrano::CLI.ui.say yellow "It appears you have not deployed yet, skipping sanity check"
       return
     end
@@ -218,25 +218,28 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     git  = GitRepo.new
     deploy_sha = git.get_hash(tag, {raise: true, verify: true})
 
-    # If we are in a non-Production environment and we have enabled it allow reverse deploy
-    reverse_ok = (ENV['REVERSE_DEPLOY_OK'] || fetch(:reverse_deploy_ok, false)) && fetch(:stage) != 'production'
-
-
-    unless reverse_ok
-      # See this article for info on how this works:
-      # http://stackoverflow.com/questions/3005392/git-how-can-i-tell-if-one-commit-is-a-descendant-of-another-commit
-      current_version_sha = git.get_hash(safe_current_revision, {raise: true, verify: true})
-      common_version_sha = safe_current_revision && git.merge_base({}, deploy_sha, safe_current_revision).chomp
-      if common_version_sha != current_version_sha
-        unless continue_with_reverse_deploy(deploy_sha)
-          raise "You are trying to deploy #{deploy_sha}, which does not contain #{safe_current_revision}," + \
-            " the commit currently running.  Operation aborted for your safety." + \
-            " Set REVERSE_DEPLOY_OK to override."
-        end
-      end
-    else
-      logger.info 'WARNING: Skipping reverse deploy check because REVERSE_DEPLOY_OK is set.'
+    if reverse_ok
+      logger.info 'WARNING: Skipping reverse deploy check flag found and non-production environment.'
+      return
     end
+
+    # See this article for info on how this works:
+    # http://stackoverflow.com/questions/3005392/git-how-can-i-tell-if-one-commit-is-a-descendant-of-another-commit
+    current_version_sha = git.get_hash(safe_current_revision, {raise: true, verify: true})
+    common_version_sha = safe_current_revision && git.merge_base({}, deploy_sha, safe_current_revision).chomp
+
+    if common_version_sha != current_version_sha
+      unless continue_with_reverse_deploy(deploy_sha)
+        raise "You are trying to deploy #{deploy_sha}, which does not contain #{safe_current_revision}," + \
+          " the commit currently running.  Operation aborted for your safety." + \
+          " Set REVERSE_DEPLOY_OK to override."
+      end
+    end
+  end
+
+  # If we are in a non-Production environment and we have enabled it allow reverse deploy
+  def reverse_ok
+    return (ENV['REVERSE_DEPLOY_OK'] || fetch(:reverse_deploy_ok, false)) && fetch(:stage) != 'production'
   end
 
   def confirm(msg)
