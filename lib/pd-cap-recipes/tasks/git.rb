@@ -204,37 +204,42 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
   # Ensures that the code with given tag is a descendent of the deployed revision.
   # Relies on current_revison Cap call through safe_current_revision
   def git_sanity_check(tag)
-    skip_git = fetch(:skip_git, false)
-    if skip_git
-      Capistrano::CLI.ui.say yellow "Skipping git_sanity_check as 'skip_git' option is enabled"
-      return
-    end
-
-    unless  is_already_deployed
-      Capistrano::CLI.ui.say yellow "It appears you have not deployed yet, skipping sanity check"
-      return
-    end
+    return if should_skip_sanity_check?
 
     git  = GitRepo.new
-    deploy_sha = git.get_hash(tag, {raise: true, verify: true})
-
-    if reverse_ok
-      logger.info 'WARNING: Skipping reverse deploy check flag found and non-production environment.'
-      return
-    end
+    opts = {raise: true, verify: true}
+    deploy_sha = git.get_hash(tag, opts)
 
     # See this article for info on how this works:
     # http://stackoverflow.com/questions/3005392/git-how-can-i-tell-if-one-commit-is-a-descendant-of-another-commit
-    current_version_sha = git.get_hash(safe_current_revision, {raise: true, verify: true})
-    common_version_sha = safe_current_revision && git.merge_base({}, deploy_sha, safe_current_revision).chomp
+    current_version_sha = git.get_hash(safe_current_revision, opts)
+    common_version_sha = git.merge_base({}, deploy_sha, safe_current_revision).chomp
+    return if common_version_sha == current_version_sha
 
-    if common_version_sha != current_version_sha
-      unless continue_with_reverse_deploy(deploy_sha)
-        raise "You are trying to deploy #{deploy_sha}, which does not contain #{safe_current_revision}," + \
-          " the commit currently running.  Operation aborted for your safety." + \
-          " Set REVERSE_DEPLOY_OK to override."
-      end
+    raise "You are trying to deploy #{deploy_sha}, which does not contain #{safe_current_revision}," + \
+      " the commit currently running.  Operation aborted for your safety." + \
+      " Set REVERSE_DEPLOY_OK to override." unless continue_with_reverse_deploy(deploy_sha)
+  end
+
+  # Coniditons for skipping git sanity check
+  def should_skip_sanity_check?
+    skip_git = fetch(:skip_git, false)
+    if skip_git
+      Capistrano::CLI.ui.say yellow "Skipping git_sanity_check as 'skip_git' option is enabled"
+      return true
     end
+
+    unless is_already_deployed
+      Capistrano::CLI.ui.say yellow "It appears you have not deployed yet, skipping sanity check"
+      return true
+    end
+
+    if reverse_ok
+      Capistrano::CLI.ui.say yellow 'Skipping reverse deploy check flag found and non-production environment.'
+      return true
+    end
+
+    return false
   end
 
   # If we are in a non-Production environment and we have enabled it allow reverse deploy
@@ -271,12 +276,13 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       logger.info "An exception as occured while fetching the current revision. This is to be expected if this is your first deploy to this machine. Othewise, something is broken :("
       logger.info e.inspect
       logger.info "*" * 80
-      nil
+      return nil
     end
   end
 
   # If a current revision exists we assume we've deployed before.
   def is_already_deployed
     return false if safe_current_revision.nil?
+    return true
   end
 end
