@@ -24,7 +24,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'capistrano-spec', '~> 0.2.0'
   s.add_development_dependency 'rubocop'
 
-  s.add_runtime_dependency 'capistrano', '~> 2.15'
   s.add_runtime_dependency 'grit', '~> 2.5.0'
   s.add_runtime_dependency 'json'
 end
