@@ -23,12 +23,6 @@ describe "Git sanity check", :recipe => true do
         config.set :reverse_deploy_ok, true
         expect(task_lambda).to_not raise_error
       end
-
-      ["deploy", "deploy:migrations"].each do |task|
-        it "should run before #{task}" do
-          expect(before_callbacks_for_task(task)).to include('git:validate_branch_is_tag')
-        end
-      end
     end
 
     describe 'without a current revision' do

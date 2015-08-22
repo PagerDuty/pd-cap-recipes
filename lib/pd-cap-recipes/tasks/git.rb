@@ -124,8 +124,6 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     end
   end
 
-  after 'deploy_previous_tag', 'deploy'
-
   # NOTE: not being used as far as we can tell
   desc 'Rollback to the previous git tag deployed by performing a regular deploy.'
   task :deploy_previous_tag do
@@ -138,10 +136,6 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     Capistrano::CLI.ui.say "Rolling back to #{tag_to_rollback_to}"
     config[:tag] = tag_to_rollback_to
   end
-
-  after "deploy:create_symlink", "git:update_tag_for_stage"
-  before "deploy", "git:validate_branch_is_tag"
-  before "deploy:migrations", "git:validate_branch_is_tag"
 
   namespace :git do
 
