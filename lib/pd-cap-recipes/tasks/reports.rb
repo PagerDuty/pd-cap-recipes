@@ -51,7 +51,6 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
           rev_info.each do |host, rev|
             puts "#{host} -> #{rev}"
           end
-          return
         end
 
         puts "The current revision installed on #{rev_info.keys.length} machines is '#{revs.first}'"
