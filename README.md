@@ -56,6 +56,14 @@ or you could use set to selectively disable, useful if you have a local/dev envi
 
     set :skip_git, true
 
+* _Note_ From version 0.5.0 onwards pd-cap-recipes no more automatically add hooks into deploy stages. Its up to the consumer code to declare their own after and before hooks. So, if you are migrating to 0.5.0 or above and still want the git:validate_branch_is_tag as part of deployment, add this in your deploy.rb
+    ```ruby
+    after 'deploy_previous_tag', 'deploy'
+    after "deploy:create_symlink", "git:update_tag_for_stage"
+    before "deploy", "git:validate_branch_is_tag"
+    before "deploy:migrations", "git:validate_branch_is_tag"
+    ```
+
 ### Deploy Comments
 
 In order to enable custom deploy comments which are sent via HipChat; you will need to follow these steps:
