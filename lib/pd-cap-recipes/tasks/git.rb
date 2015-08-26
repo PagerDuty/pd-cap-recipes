@@ -266,7 +266,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       current_revision
     rescue => e
       logger.info "*" * 80
-      logger.info "An exception as occured while fetching the current revision. This is to be expected if this is your first deploy to this machine. Othewise, something is broken :("
+      logger.info "An exception has occured while fetching the current revision. This is to be expected if this is your first deploy to this machine. Otherwise, something is broken :("
       logger.info e.inspect
       logger.info "*" * 80
       return nil
