@@ -153,13 +153,12 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     #
     # You may deploy and then have no REVISION file yet which means this fails.
     set :branch do
-      return config[:_git_branch] if config[:_git_branch]
-
-      # if tag is provided (e.g. -s tag=master-1234567890), use it. otherwise, cut a new tag.
-      tag = config[:tag] || git_cut_tag
-      config[:_git_branch] = tag
-      git_sanity_check(tag)
-
+      unless config[:_git_branch]
+        # if tag is provided (e.g. -s tag=master-1234567890), use it. otherwise, cut a new tag.
+        tag = config[:tag] || git_cut_tag
+        config[:_git_branch] = tag
+        git_sanity_check(tag)
+      end
       config[:_git_branch]
     end
 
