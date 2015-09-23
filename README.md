@@ -97,6 +97,12 @@ or...
 
     set :skip_hipchat, true
 
+### Non-Standard SSH Port
+
+If you are using a port other than 22 for ssh on your machine you will want to
+configure this by setting the port value in the deploy file. For example
+```set :port, 10022```.
+
 ### Improved Logging
 
 The entire output produced by capistrano is logged to `log/capistrano.log`.
