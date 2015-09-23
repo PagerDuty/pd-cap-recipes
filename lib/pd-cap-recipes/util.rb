@@ -39,7 +39,7 @@ end
 # Allow passing a block to process on each cluster/stage machine
 def ssh_to_cluster(servers, user, port, gateway_host: nil)
   if gateway_host != nil
-    gateway = Net::SSH::Gateway.new(gateway_host, user, :port => port)
+    gateway = Net::SSH::Gateway.new(gateway_host, user, port: port)
     servers.each do |machine|
       gateway.ssh(machine, user) do |ssh|
         yield machine, ssh
@@ -48,7 +48,7 @@ def ssh_to_cluster(servers, user, port, gateway_host: nil)
     gateway.shutdown!
   else
     servers.each do |machine|
-      Net::SSH.start(machine.host, user, :port => port) do |ssh|
+      Net::SSH.start(machine.host, user, port: port) do |ssh|
         yield machine, ssh
       end
     end
