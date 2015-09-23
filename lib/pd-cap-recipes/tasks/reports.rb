@@ -7,13 +7,14 @@ def get_connection_details
   servers = find_servers_for_task(current_task)
   user = fetch(:user)
   deploy_to = fetch(:deploy_to)
+  port = fetch(:port)
   gateway_host = nil
   begin
     gateway_config = fetch(:gateway)
     gateway_host = gateway_config.keys.first
   rescue
   end
-  return servers, user, gateway_host
+  return servers, user, gateway_host, port
 end
 
 Capistrano::Configuration.instance(:must_exist).load do |config|
@@ -23,8 +24,8 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       Print out which versions are installed on machines
     DESC
     task :list_releases do
-      servers, user, gateway_host = get_connection_details
-      info = collect_version_info(servers, user, gateway_host)
+      servers, user, gateway_host, port = get_connection_details
+      info = collect_version_info(servers, user, port, gateway_host: gateway_host)
       info.each do |machine, folder_info|
         puts "Releases on #{machine}:"
         folder_info.each do |folder|
@@ -38,8 +39,8 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       than one 'current version' found report on them.
     DESC
     task :check_current_version do
-        servers, user, gateway_host = get_connection_details
-        rev_info = get_current_rev_info(servers, user, gateway_host)
+        servers, user, gateway_host, port = get_connection_details
+        rev_info = get_current_rev_info(servers, user, port, gateway_host: gateway_host)
         revs = Set.new
         rev_info.each do |host, rev|
           revs.add(rev)
@@ -61,8 +62,8 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       machines
     DESC
     task :revision_sets do
-      servers, user, gateway_host = get_connection_details
-      info = collect_version_info(servers, user, gateway_host)
+      servers, user, gateway_host, port = get_connection_details
+      info = collect_version_info(servers, user, port, gateway_host: gateway_host)
 
       current_round = info.keys.reverse
       sets_to_machine = Hash.new {|h, k| h[k] = []} # on new key return empty array

@@ -2,9 +2,9 @@ require 'net/ssh/gateway'
 require 'net/ssh'
 
 # Return a hash with host -> current revision mapping
-def get_current_rev_info(servers, user, gateway=nil)
+def get_current_rev_info(servers, user, port, gateway_host: nil)
   host_versions = {}
-  ssh_to_cluster(servers, user, gateway) do |machine, ssh|
+  ssh_to_cluster(servers, user, port, gateway_host: gateway_host) do |machine, ssh|
       ssh.exec!("cat #{deploy_to}/current/REVISION") do |ch, strm, data|
         if strm == :stdout
           host_versions[machine.host] = data.strip
@@ -17,9 +17,9 @@ def get_current_rev_info(servers, user, gateway=nil)
 end
 
 # Return a hash with host -> hash of information on release folder mapping
-def collect_version_info(servers, user, gateway=nil)
+def collect_version_info(servers, user, port, gateway_host: nil)
   cluster_info = {}
-  ssh_to_cluster(servers, user, gateway) do |machine, ssh|
+  ssh_to_cluster(servers, user, port, gateway_host: gateway_host) do |machine, ssh|
     ls_output = ssh.exec!("ls -l #{deploy_to}/releases/")
     folder_info = parse_ls_l(ls_output)
     folder_info.each do |info|
@@ -37,9 +37,9 @@ def collect_version_info(servers, user, gateway=nil)
 end
 
 # Allow passing a block to process on each cluster/stage machine
-def  ssh_to_cluster(servers, user, gateway_host=nil)
+def ssh_to_cluster(servers, user, port, gateway_host: nil)
   if gateway_host != nil
-    gateway = Net::SSH::Gateway.new(gateway_host, user)
+    gateway = Net::SSH::Gateway.new(gateway_host, user, port: port)
     servers.each do |machine|
       gateway.ssh(machine, user) do |ssh|
         yield machine, ssh
@@ -48,7 +48,7 @@ def  ssh_to_cluster(servers, user, gateway_host=nil)
     gateway.shutdown!
   else
     servers.each do |machine|
-      Net::SSH.start(machine.host, user) do |ssh|
+      Net::SSH.start(machine.host, user, port: port) do |ssh|
         yield machine, ssh
       end
     end
