@@ -7,7 +7,7 @@ def get_connection_details
   servers = find_servers_for_task(current_task)
   user = fetch(:user)
   deploy_to = fetch(:deploy_to)
-  port = fetch(:port)
+  port = fetch(:port, 22)
   gateway_host = nil
   begin
     gateway_config = fetch(:gateway)
