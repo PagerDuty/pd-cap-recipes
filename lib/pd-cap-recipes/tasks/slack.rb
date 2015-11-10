@@ -59,20 +59,18 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   def build_changelog
     changelog = []
-    begin
-      from = fetch(:latest_revision)
-      to = fetch(:real_revision)
-      # generates a string like '9ce7af12$$Author$$commit log string'. Easy to parse in next step.
-      logs = run_locally(source.local.scm(:log, "--no-merges --pretty=format:'%h$$%an$$%s' #{from}..#{to}"))
-      logs.split(/\n/).each do |log|
-        ll = log.split(/\$\$/)
-        changelog << "• #{ll[2]} (#{slack_commit(ll[0])})"
-      end
-    rescue => e
-      Capistrano::CLI.ui.say red "Unable to determine revision information, skipping changelog generation for Slack notification."
-      logger.important(e.message)
+    from = fetch(:latest_revision)
+    to = fetch(:real_revision)
+    # generates a string like '9ce7af12$$Author$$commit log string'. Easy to parse in next step.
+    logs = run_locally(source.local.scm(:log, "--no-merges --pretty=format:'%h$$%an$$%s' #{from}..#{to}"))
+    logs.split(/\n/).each do |log|
+      ll = log.split(/\$\$/)
+      changelog << "• #{ll[2]} (#{slack_commit(ll[0])})"
     end
-    changelog
+    changelog.join("\n").presence
+  rescue => e
+    Capistrano::CLI.ui.say red "Unable to determine revision information, skipping changelog generation for Slack notification."
+    logger.important(e.message)
   end
 
   def channel
