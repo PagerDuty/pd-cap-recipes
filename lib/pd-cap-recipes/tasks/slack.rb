@@ -67,7 +67,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       ll = log.split(/\$\$/)
       changelog << "• #{ll[2]} (#{slack_commit(ll[0])})"
     end
-    changelog.join("\n").presence
+    changelog.empty? ? nil : changelog.join("\n")
   rescue => e
     Capistrano::CLI.ui.say red "Unable to determine revision information, skipping changelog generation for Slack notification."
     logger.important(e.message)
