@@ -12,11 +12,10 @@ Capistrano::Configuration.instance(:must_exist).load do
   # - slack_additional_attachments if you want extra information in the the deploy start message.
   #   Should be a list of (title, value, short) as per PdSlack::IncomingWebhookAttachment#add_field.
   # - slack_pub_channel defaults to #deployments-prod (when production) or #deployments-other
-
-  # Hooks
-  #####
-  before 'deploy', 'slack:starting'
-  after 'deploy', 'slack:finished'
+  #
+  # Suggested hooks:
+  # before 'deploy', 'slack:starting'
+  # after 'deploy', 'slack:finished'
 
   def enabled?
     fetch(:slack_enabled, true)
