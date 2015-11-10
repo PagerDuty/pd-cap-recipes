@@ -5,9 +5,10 @@ Capistrano::Configuration.instance(:must_exist).load do
   ########
   # Please set these in your project's Capfile:
   # - slack_deploy_incoming_webhook to a posting key authorized for your Slack account, e.g. '/Tfoofoo/Bbarbar/Ibazbazbaz'
-  # - slack_appliation
-  # - slack_scm_app_url e.g. 'https://github.com/PagerDuty'
-  #   Such that "#{slack_scm_app_url}/#{slack_application}" => 'https://github.com/PagerDuty/appname'
+  # - slack_username is who the slack notification will claim to be from
+  # - slack_emoji is the avatar for who the slack notification will claim to be from
+  # - slack_application
+  # - slack_scm_app_url e.g. 'https://github.com/PagerDuty/appname'
   # - slack_additional_attachments if you want extra information in the the deploy start message.
   #   Should be a list of (title, value, short) as per PdSlack::IncomingWebhookAttachment#add_field.
   # - slack_pub_channel defaults to #deployments-prod (when production) or #deployments-other
