@@ -16,6 +16,10 @@ describe(GitRepo) do
         .with(anything, 'origin', "refs/tags/#{tag}")
       subject.remote_tag(tag)
     end
+    it 'allows remote to be overridden' do
+      expect(git).to receive(:push) .with(anything, 'stompy', anything)
+      subject.remote_tag(tag, 'stompy')
+    end
   end
 
   describe('#delete_remote_tag') do
@@ -24,6 +28,10 @@ describe(GitRepo) do
       expect(git).to receive(:push)
         .with(anything, 'origin', ":refs/tags/#{tag}")
       subject.delete_remote_tag(tag)
+    end
+    it 'allows remote to be overridden' do
+      expect(git).to receive(:push) .with(anything, 'stompy', anything)
+      subject.delete_remote_tag(tag, 'stompy')
     end
   end
 end

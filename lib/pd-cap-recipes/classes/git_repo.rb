@@ -10,14 +10,14 @@ class GitRepo
     @git.__send__(*args, &block)
   end
 
-  def delete_remote_tag(tag)
+  def delete_remote_tag(tag, remote='origin')
     @git.tag d: tag
-    @git.push({raise: true}, 'origin', ":refs/tags/#{tag}")
+    @git.push({raise: true}, remote, ":refs/tags/#{tag}")
   end
 
-  def remote_tag(tag)
+  def remote_tag(tag, remote='origin')
     @git.tag({raise: true}, tag)
-    @git.push({raise: true}, 'origin', "refs/tags/#{tag}")
+    @git.push({raise: true}, remote, "refs/tags/#{tag}")
   end
 
   # Fetch latest from origin and check given hash exists in origin
