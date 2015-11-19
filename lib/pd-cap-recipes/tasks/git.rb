@@ -8,12 +8,13 @@ Grit::Git.git_max_size = 104857600 # 100 megs
 # Create a new tag using the name of current branch and a UTC timestamp, then
 # push code & tag to remote.
 def git_cut_tag(git=GitRepo.new)
+  remote = 'origin'
   if git.head_detached?
     raise 'You are currently in a detached head state. Cannot cut tag.'
   end
   new_tag = "#{git.head.name}-#{Time.now.utc.to_i}"
   git.fetch
-  git.remote_tag new_tag
+  git.remote_tag new_tag, remote
   return new_tag
 end
 

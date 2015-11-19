@@ -37,3 +37,14 @@ describe "Git sanity check", :recipe => true do
   end
 end
 
+describe 'git_cut_tag' do
+  let(:head) { double('head', name: :stompy) }
+  let(:git_repo) do
+    double(GitRepo, head_detached?: false, head: head, fetch: nil)
+  end
+  it 'pushes a new tag to origin by default' do
+    expect(git_repo).to receive(:remote_tag)
+      .with(anything, 'origin')
+    git_cut_tag(git_repo)
+  end
+end
