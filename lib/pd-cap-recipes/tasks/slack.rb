@@ -92,7 +92,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       attachment.add_field('Environment', slack_environment, short: true)
       attachment.add_field('Revision', slack_revision(branch), short: true)
       fetch(:slack_additional_attachments, []).each { |a| attachment.send :add_field, *a }
-      attachment.add_field('Changelog', changelog, short: false) unless changelog.empty?
+      attachment.add_field('Changelog', changelog, short: false) if changelog
 
       webhook = PdSlack::IncomingWebhook.new(
         fetch(:slack_deploy_incoming_webhook),
