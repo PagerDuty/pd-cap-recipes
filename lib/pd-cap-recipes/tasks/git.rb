@@ -8,13 +8,12 @@ Grit::Git.git_max_size = 104857600 # 100 megs
 # Create a new tag using the name of current branch and a UTC timestamp, then
 # push code & tag to remote.
 def git_cut_tag(git=GitRepo.new)
-  remote = 'origin'
   if git.head_detached?
     raise 'You are currently in a detached head state. Cannot cut tag.'
   end
   new_tag = "#{git.head.name}-#{Time.now.utc.to_i}"
   git.fetch
-  git.remote_tag new_tag, remote
+  git.remote_tag new_tag, git.preferred_remote
   return new_tag
 end
 
@@ -82,7 +81,6 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
 
     # NOTE: looking at projects in Github I'm not seeing these tags.
     task :update_tag_for_stage do
-      remote = 'origin'
       skip_git = fetch(:skip_git, false)
       if skip_git
         Capistrano::CLI.ui.say yellow "Skipping update_tag_for_stage as 'skip_git' option is enabled"
@@ -93,6 +91,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       git = GitRepo.new
       env = config[:stage]
 
+      remote = git.preferred_remote
       git.delete_remote_tag env, remote
       git.remote_tag env, remote
       git.remote_tag "DEPLOYED---#{env}---#{Time.now.utc.to_i}", remote

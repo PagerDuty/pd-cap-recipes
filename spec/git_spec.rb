@@ -42,9 +42,10 @@ describe 'git_cut_tag' do
   let(:git_repo) do
     double(GitRepo, head_detached?: false, head: head, fetch: nil)
   end
-  it 'pushes a new tag to origin by default' do
+  it 'pushes a new tag to remote' do
+    allow(git_repo).to receive(:preferred_remote).and_return('stompy')
     expect(git_repo).to receive(:remote_tag)
-      .with(anything, 'origin')
+      .with(anything, 'stompy')
     git_cut_tag(git_repo)
   end
 end
@@ -59,14 +60,15 @@ describe 'update_tag_for_stage task', recipe: true do
     lambda { config.find_and_execute_task 'git:update_tag_for_stage' }
   end
 
-  it "updates tag on origin and adds deployment tag" do
+  it "updates tag on remote and adds deployment tag" do
     config.set :stage, stage
     allow(Time).to receive(:now).and_return(Time.utc(1970))
 
-    expect(git_repo).to receive(:delete_remote_tag).with(stage, 'origin')
-    expect(git_repo).to receive(:remote_tag).with(stage, 'origin')
+    allow(git_repo).to receive(:preferred_remote).and_return('stompy')
+    expect(git_repo).to receive(:delete_remote_tag).with(stage, 'stompy')
+    expect(git_repo).to receive(:remote_tag).with(stage, 'stompy')
     expect(git_repo).to receive(:remote_tag)
-      .with("DEPLOYED---#{stage}---0", 'origin')
+      .with("DEPLOYED---#{stage}---0", 'stompy')
     expect(update_tag_for_stage).to_not raise_error
   end
 end

@@ -82,4 +82,16 @@ class GitRepo
     end
     return true
   end
+
+  def preferred_remote
+    remotes = @repo.config.keys
+      .select { |k| k.start_with? 'remote.' }
+      .map { |r| r.split('.')[1] }
+      .sort.uniq
+    if remotes.size == 1
+      remotes.first
+    else
+      'origin'
+    end
+  end
 end
