@@ -45,7 +45,7 @@ describe(GitRepo) do
         "remote.slurp.url",
         "remote.slurp.fetch",
         "branch.master.remote",
-        "branch.master.merge",
+        "branch.master.merge"
       ]
     end
     let(:repo) { instance_double(Grit::Repo) }
@@ -66,7 +66,7 @@ describe(GitRepo) do
     describe('when multiple remotes') do
       it 'returns origin' do
         allow(config).to receive(:keys).and_return(
-          config_keys + [ "remote.abc.url", "remote.abc.fetch" ]
+          config_keys + ["remote.abc.url", "remote.abc.fetch"]
         )
         expect(subject.preferred_remote).to eq('origin')
       end
