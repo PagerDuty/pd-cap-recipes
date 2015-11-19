@@ -31,7 +31,7 @@ describe "Git sanity check", :recipe => true do
       end
 
       it "should return the branch without exception" do
-        config.branch   
+        config.branch
       end
     end
   end
@@ -46,5 +46,27 @@ describe 'git_cut_tag' do
     expect(git_repo).to receive(:remote_tag)
       .with(anything, 'origin')
     git_cut_tag(git_repo)
+  end
+end
+
+describe 'update_tag_for_stage task', recipe: true do
+  before(:each) do
+    expect(GitRepo).to receive(:new).and_return(git_repo)
+  end
+  let(:git_repo) { double(GitRepo) }
+  let(:stage) { 'foo' }
+  let(:update_tag_for_stage) do
+    lambda { config.find_and_execute_task 'git:update_tag_for_stage' }
+  end
+
+  it "updates tag on origin and adds deployment tag" do
+    config.set :stage, stage
+    allow(Time).to receive(:now).and_return(Time.utc(1970))
+
+    expect(git_repo).to receive(:delete_remote_tag).with(stage, 'origin')
+    expect(git_repo).to receive(:remote_tag).with(stage, 'origin')
+    expect(git_repo).to receive(:remote_tag)
+      .with("DEPLOYED---#{stage}---0", 'origin')
+    expect(update_tag_for_stage).to_not raise_error
   end
 end

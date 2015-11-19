@@ -82,6 +82,7 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
 
     # NOTE: looking at projects in Github I'm not seeing these tags.
     task :update_tag_for_stage do
+      remote = 'origin'
       skip_git = fetch(:skip_git, false)
       if skip_git
         Capistrano::CLI.ui.say yellow "Skipping update_tag_for_stage as 'skip_git' option is enabled"
@@ -91,10 +92,10 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       logger.important("Updating the tag for stage #{stage}")
       git = GitRepo.new
       env = config[:stage]
-  
-      git.delete_remote_tag env
-      git.remote_tag env
-      git.remote_tag "DEPLOYED---#{env}---#{Time.now.utc.to_i}"
+
+      git.delete_remote_tag env, remote
+      git.remote_tag env, remote
+      git.remote_tag "DEPLOYED---#{env}---#{Time.now.utc.to_i}", remote
     end
 
     task :validate_branch_is_tag do
