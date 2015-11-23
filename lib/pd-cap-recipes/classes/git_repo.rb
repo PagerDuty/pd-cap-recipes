@@ -28,10 +28,10 @@ class GitRepo
   # Fetch latest from origin and check given hash exists in origin
   def check_tag_exists_in_origin(tag)
     origin_name = preferred_remote
-    raise "invalid tag: #{string.inspect}" unless string.is_a?(String)
+    fail "invalid tag: #{string.inspect}" unless string.is_a?(String)
     hash = @git.rev_parse({raise: true}, tag)
     output = @git.ls_remote({raise: true}, origin_name, "refs/tags/#{tag}")
-    output =~ /#{hash}\s*refs\/tags\/#{tag}/
+    output =~ %r{#{hash}\s*refs/tags/#{tag}}
   end
 
   # return Grit::Head object or nil if in detached state
@@ -61,14 +61,12 @@ class GitRepo
   end
 
   # get the hash for branch/tag in the remote origin
-  def has_remote?(commitish)
+  def remote?(commitish)
     origin_name = preferred_remote
     commitish = commitish.to_s
     output = @git.ls_remote({raise: true}, origin_name)
     output.split.each do |line|
-      if line=~ /[a-z0-9]{40}\s*refs\/(tags|heads)\/#{commitish}/
-        return true
-      end
+      return true if line =~ %r{[a-z0-9]{40}\s*refs/(tags|heads)/#{commitish}}
     end
     nil
   end
