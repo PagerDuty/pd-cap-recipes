@@ -38,14 +38,16 @@ describe "Git sanity check", :recipe => true do
 end
 
 describe 'git_cut_tag' do
+  before(:each) do
+    allow(Time).to receive(:now).and_return(Time.utc(1970))
+  end
+
   let(:head) { double('head', name: :stompy) }
   let(:git_repo) do
     double(GitRepo, head_detached?: false, head: head, fetch: nil)
   end
   it 'pushes a new tag to remote' do
-    allow(git_repo).to receive(:preferred_remote).and_return('stompy')
-    expect(git_repo).to receive(:remote_tag)
-      .with(anything, 'stompy')
+    expect(git_repo).to receive(:remote_tag).with('stompy-0')
     git_cut_tag(git_repo)
   end
 end
@@ -53,6 +55,7 @@ end
 describe 'update_tag_for_stage task', recipe: true do
   before(:each) do
     expect(GitRepo).to receive(:new).and_return(git_repo)
+    allow(Time).to receive(:now).and_return(Time.utc(1970))
   end
   let(:git_repo) { double(GitRepo) }
   let(:stage) { 'foo' }
@@ -62,13 +65,9 @@ describe 'update_tag_for_stage task', recipe: true do
 
   it "updates tag on remote and adds deployment tag" do
     config.set :stage, stage
-    allow(Time).to receive(:now).and_return(Time.utc(1970))
-
-    allow(git_repo).to receive(:preferred_remote).and_return('stompy')
-    expect(git_repo).to receive(:delete_remote_tag).with(stage, 'stompy')
-    expect(git_repo).to receive(:remote_tag).with(stage, 'stompy')
-    expect(git_repo).to receive(:remote_tag)
-      .with("DEPLOYED---#{stage}---0", 'stompy')
+    expect(git_repo).to receive(:delete_remote_tag).with(stage)
+    expect(git_repo).to receive(:remote_tag).with(stage)
+    expect(git_repo).to receive(:remote_tag).with("DEPLOYED---#{stage}---0")
     expect(update_tag_for_stage).to_not raise_error
   end
 end

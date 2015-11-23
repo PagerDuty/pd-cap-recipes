@@ -2,6 +2,8 @@ require 'grit'
 
 # Convenience wrapper around Grit::Git
 class GitRepo
+  attr_writer :preferred_remote
+
   def initialize
     @git = Grit::Git.new(File.join('.', '.git'))
     @repo = Grit::Repo.new('.')
@@ -11,18 +13,21 @@ class GitRepo
     @git.__send__(*args, &block)
   end
 
-  def delete_remote_tag(tag, remote='origin')
+  def delete_remote_tag(tag)
+    remote = preferred_remote
     @git.tag d: tag
     @git.push({raise: true}, remote, ":refs/tags/#{tag}")
   end
 
-  def remote_tag(tag, remote='origin')
+  def remote_tag(tag)
+    remote = preferred_remote
     @git.tag({raise: true}, tag)
     @git.push({raise: true}, remote, "refs/tags/#{tag}")
   end
 
   # Fetch latest from origin and check given hash exists in origin
-  def check_tag_exists_in_origin(tag, origin_name='origin')
+  def check_tag_exists_in_origin(tag)
+    origin_name = preferred_remote
     raise "invalid tag: #{string.inspect}" unless string.is_a?(String)
     hash = @git.rev_parse({raise: true}, tag)
     output = @git.ls_remote({raise: true}, origin_name, "refs/tags/#{tag}")
@@ -56,7 +61,8 @@ class GitRepo
   end
 
   # get the hash for branch/tag in the remote origin
-  def has_remote?(commitish, origin_name='origin')
+  def has_remote?(commitish)
+    origin_name = preferred_remote
     commitish = commitish.to_s
     output = @git.ls_remote({raise: true}, origin_name)
     output.split.each do |line|
@@ -78,6 +84,12 @@ class GitRepo
   # rubocop:enable Style/PredicateName
 
   def preferred_remote
+    @preferred_remote ||= determine_preferred_remote
+  end
+
+  private
+
+  def determine_preferred_remote
     remotes = remote_names
     if remotes.size == 1
       remotes.first
@@ -85,8 +97,6 @@ class GitRepo
       'origin'
     end
   end
-
-  private
 
   def remote_names
     @repo.config.keys

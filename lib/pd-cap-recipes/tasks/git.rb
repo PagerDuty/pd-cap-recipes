@@ -13,7 +13,7 @@ def git_cut_tag(git=GitRepo.new)
   end
   new_tag = "#{git.head.name}-#{Time.now.utc.to_i}"
   git.fetch
-  git.remote_tag new_tag, git.preferred_remote
+  git.remote_tag new_tag
   return new_tag
 end
 
@@ -91,10 +91,9 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
       git = GitRepo.new
       env = config[:stage]
 
-      remote = git.preferred_remote
-      git.delete_remote_tag env, remote
-      git.remote_tag env, remote
-      git.remote_tag "DEPLOYED---#{env}---#{Time.now.utc.to_i}", remote
+      git.delete_remote_tag env
+      git.remote_tag env
+      git.remote_tag "DEPLOYED---#{env}---#{Time.now.utc.to_i}"
     end
 
     task :validate_branch_is_tag do
