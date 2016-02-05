@@ -1,6 +1,7 @@
 require 'net/ssh/gateway'
 require 'net/ssh'
 require 'pd-cap-recipes/util'
+require 'set'
 
 # Get's the connection details from Capistrano configuration.
 def get_connection_details
