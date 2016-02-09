@@ -1,4 +1,6 @@
 require 'json'
+require 'uri'
+require 'net/http'
 
 module PdSlack
   class InvalidElement < StandardError
