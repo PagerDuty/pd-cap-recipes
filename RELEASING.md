@@ -7,7 +7,7 @@ First make sure that the PR you are about to merge into master meets the followi
 * You have updated the [CHANGELOG.md](CHANGELOG.md) file to contain information on changes in the release.
 *
 
-Next merge the PR and delete the branch you where using.
+Next merge the PR and delete the branch you were using.
 
 Create a tag for the version, the format is v1.2.3, you can do this by using the release function in GitHub.
 
