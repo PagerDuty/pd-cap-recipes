@@ -17,11 +17,11 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_development_dependency 'bundler', '~> 1.6'
-  s.add_development_dependency 'rake', '10.5.0'
+  s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'rspec-core'
   s.add_development_dependency 'capistrano-spec', '~> 0.2.0'
-  s.add_development_dependency 'rubocop', '0.37.0'
+  s.add_development_dependency 'rubocop'
 
   s.add_runtime_dependency 'grit', '~> 2.5.0'
   s.add_runtime_dependency 'capistrano', '2.15.7'
