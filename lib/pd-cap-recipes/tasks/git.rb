@@ -152,9 +152,9 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
     return false
   end
 
-  # If we are in a non-Production environment and we have enabled it allow reverse deploy
+  # Allow reverse deploy if we have enabled it
   def reverse_ok
-    return (ENV['REVERSE_DEPLOY_OK'] || fetch(:reverse_deploy_ok, false)) && fetch(:stage) != 'production'
+    return ENV['REVERSE_DEPLOY_OK'] || fetch(:reverse_deploy_ok, false)
   end
 
   def confirm(msg)
