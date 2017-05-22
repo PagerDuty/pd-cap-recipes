@@ -1,6 +1,6 @@
 ## 0.6.5
 
-Remove restriction on non-production rollbacks in favor of letting individual service owners decide whether to enforce this.
+Remove restriction on production rollbacks in favor of letting individual service owners decide whether to enforce this.
 
 ## 0.6.4
 
