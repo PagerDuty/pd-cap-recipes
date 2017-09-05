@@ -108,7 +108,9 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
 
     # See this article for info on how this works:
     # http://stackoverflow.com/questions/3005392/git-how-can-i-tell-if-one-commit-is-a-descendant-of-another-commit
-    if ENV['REVERSE_DEPLOY_OK'].nil?
+    if ENV['REVERSE_DEPLOY_OK'].to_s == '1'
+      logger.info 'WARNING: Skipping reverse deploy check because REVERSE_DEPLOY_OK is set.'
+    else
       if safe_current_revision && git.merge_base({}, deploy_sha, safe_current_revision).chomp != git.rev_parse({ :verify => true }, safe_current_revision).chomp
         unless continue_with_reverse_deploy(deploy_sha)
           raise "You are trying to deploy #{deploy_sha}, which does not contain #{safe_current_revision}," + \
@@ -116,8 +118,6 @@ Capistrano::Configuration.instance(:must_exist).load do |config|
             " Set REVERSE_DEPLOY_OK to override."
         end
       end
-    else
-      logger.info 'WARNING: Skipping reverse deploy check because REVERSE_DEPLOY_OK is set.'
     end
   end
 
